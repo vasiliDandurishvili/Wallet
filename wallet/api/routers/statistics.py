@@ -4,9 +4,10 @@ from fastapi import APIRouter, Depends
 
 from wallet.api.dependencies import get_price_provider, get_storage, require_admin
 from wallet.api.models import StatisticsResponse
-from wallet.core.services.pricing import quantize_usd
+from wallet.core.services.pricing import PriceProvider, quantize_usd
 from wallet.core.services.transactions import TransactionService
 from wallet.core.services.wallets import sat_to_btc
+from wallet.infra.sqlite.storage import SqliteStorage
 
 router = APIRouter()
 
@@ -14,11 +15,12 @@ router = APIRouter()
 @router.get(
     "/statistics",
     response_model=StatisticsResponse,
-    dependencies=[Depends(require_admin)],
+    dependencies=[Depends(require_admin)],  # noqa: B008
 )
 def statistics(
-    storage=Depends(get_storage), price_provider=Depends(get_price_provider)
-):
+    storage: SqliteStorage = Depends(get_storage),  # noqa: B008
+    price_provider: PriceProvider = Depends(get_price_provider),  # noqa: B008
+) -> StatisticsResponse:
     service = TransactionService(storage=storage, price_provider=price_provider)
 
     total = storage.transactions().count()

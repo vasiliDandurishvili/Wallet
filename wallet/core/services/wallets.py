@@ -12,6 +12,7 @@ from wallet.core.services.pricing import PriceProvider, quantize_usd
 MAX_WALLETS_PER_USER = 3
 INITIAL_WALLET_BALANCE_SAT = SATOSHIS_PER_BTC
 
+
 def sat_to_btc(sat: int) -> Decimal:
     return (Decimal(sat) / Decimal(SATOSHIS_PER_BTC)).quantize(Decimal("0.00000001"))
 
@@ -45,7 +46,7 @@ class WalletService:
     def wallet_view(self, wallet: Wallet) -> dict[str, str | int]:
         quote = self.price_provider.btc_usd()
         btc = sat_to_btc(wallet.balance_sat)
-        usd =   quantize_usd(btc * quote.usd_per_btc)
+        usd = quantize_usd(btc * quote.usd_per_btc)
         return {
             "address": wallet.address,
             "balance_sat": wallet.balance_sat,

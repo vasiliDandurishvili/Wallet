@@ -5,7 +5,7 @@ from sqlite3 import Connection
 
 import pytest
 
-from wallet.core.services.pricing import PriceProvider, BtcUsdQuote
+from wallet.core.services.pricing import BtcUsdQuote, PriceProvider
 from wallet.core.services.transactions import TransactionService
 from wallet.core.services.users import UserService
 from wallet.core.services.wallets import WalletService
@@ -24,7 +24,7 @@ def connection(tmp_path: Path) -> Generator[Connection]:
 
 
 @pytest.fixture
-def storage(connection) -> SqliteStorage:
+def storage(connection: Connection) -> SqliteStorage:
     return SqliteStorage(connection)
 
 
@@ -37,9 +37,11 @@ class FakePriceProvider(PriceProvider):
 def wallet_service(storage: SqliteStorage) -> WalletService:
     return WalletService(storage=storage, price_provider=FakePriceProvider())
 
+
 @pytest.fixture
 def user_service(storage: SqliteStorage) -> UserService:
     return UserService(storage=storage)
+
 
 @pytest.fixture
 def tx_service(storage: SqliteStorage) -> TransactionService:

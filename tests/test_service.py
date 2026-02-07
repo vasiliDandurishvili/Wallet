@@ -1,13 +1,18 @@
+from unittest.mock import patch
+
 import pytest
 
-from wallet.core.services.wallets import WalletService, sat_to_btc
-from wallet.core.services.users import UserService
-from wallet.core.services.transactions import TransactionService, external_fee_sat
-from wallet.core.errors import ConflictError, NotFoundError, InsufficientFundsError, ValidationError
 from wallet.core.domain import SATOSHIS_PER_BTC
+from wallet.core.errors import (
+    ConflictError,
+    InsufficientFundsError,
+    NotFoundError,
+    ValidationError,
+)
+from wallet.core.services.transactions import TransactionService, external_fee_sat
+from wallet.core.services.users import UserService
+from wallet.core.services.wallets import WalletService
 
-
-from unittest.mock import patch
 
 def test_register_user_collision(user_service: UserService) -> None:
     with patch("secrets.token_urlsafe", return_value="fixed_api_key"):
@@ -17,7 +22,10 @@ def test_register_user_collision(user_service: UserService) -> None:
         with pytest.raises(ConflictError):
             user_service.register()
 
-def test_create_wallet(user_service: UserService, wallet_service: WalletService) -> None:
+
+def test_create_wallet(
+    user_service: UserService, wallet_service: WalletService
+) -> None:
     user = user_service.register()
     user_id = user.id
 
@@ -30,7 +38,9 @@ def test_create_wallet(user_service: UserService, wallet_service: WalletService)
         wallet_service.create_wallet(user_id)
 
 
-def test_get_wallet_owned(user_service: UserService, wallet_service: WalletService) -> None:
+def test_get_wallet_owned(
+    user_service: UserService, wallet_service: WalletService
+) -> None:
     user = user_service.register()
     user_id = user.id
     wallet = wallet_service.create_wallet(user_id)
@@ -41,6 +51,7 @@ def test_get_wallet_owned(user_service: UserService, wallet_service: WalletServi
     with pytest.raises(NotFoundError):
         wallet_service.get_wallet_owned("other_user", wallet.address)
 
+
 def test_wallet_view(user_service: UserService, wallet_service: WalletService) -> None:
     user = user_service.register()
     user_id = user.id
@@ -50,6 +61,7 @@ def test_wallet_view(user_service: UserService, wallet_service: WalletService) -
     assert view["balance_sat"] == SATOSHIS_PER_BTC
     assert float(view["balance_usd"]) > 0
     assert view["address"] == wallet.address
+
 
 def test_transfer_between_wallets(
     user_service: UserService,
@@ -67,15 +79,21 @@ def test_transfer_between_wallets(
     expected_fee = external_fee_sat(amount)
     assert tx.fee_sat == expected_fee
 
-    assert tx_service.storage.wallets().read(w1.address).balance_sat == SATOSHIS_PER_BTC - amount
+    assert (
+        tx_service.storage.wallets().read(w1.address).balance_sat
+        == SATOSHIS_PER_BTC - amount
+    )
 
-    assert tx_service.storage.wallets().read(w2.address).balance_sat == SATOSHIS_PER_BTC + (amount - expected_fee)
+    assert tx_service.storage.wallets().read(
+        w2.address
+    ).balance_sat == SATOSHIS_PER_BTC + (amount - expected_fee)
 
     with pytest.raises(InsufficientFundsError):
         tx_service.transfer(user1, w1.address, w2.address, SATOSHIS_PER_BTC * 10)
 
     with pytest.raises(ValidationError):
         tx_service.transfer(user1, w1.address, w1.address, 1000)
+
 
 def test_transfer_fee_is_zero_for_same_user(
     user_service: UserService,
@@ -90,11 +108,21 @@ def test_transfer_fee_is_zero_for_same_user(
     tx = tx_service.transfer(user, w1.address, w2.address, amount)
 
     assert tx.fee_sat == 0
-    assert tx_service.storage.wallets().read(w1.address).balance_sat == SATOSHIS_PER_BTC - amount
-    assert tx_service.storage.wallets().read(w2.address).balance_sat == SATOSHIS_PER_BTC + amount
+    assert (
+        tx_service.storage.wallets().read(w1.address).balance_sat
+        == SATOSHIS_PER_BTC - amount
+    )
+    assert (
+        tx_service.storage.wallets().read(w2.address).balance_sat
+        == SATOSHIS_PER_BTC + amount
+    )
 
 
-def test_list_user_transactions(user_service: UserService, wallet_service: WalletService, tx_service: TransactionService) -> None:
+def test_list_user_transactions(
+    user_service: UserService,
+    wallet_service: WalletService,
+    tx_service: TransactionService,
+) -> None:
     user1 = user_service.register().id
     user2 = user_service.register().id
     w1 = wallet_service.create_wallet(user1)
@@ -107,7 +135,12 @@ def test_list_user_transactions(user_service: UserService, wallet_service: Walle
     txs = tx_service.list_user_transactions(user1)
     assert len(txs) == 1
 
-def test_tx_view(user_service:UserService, wallet_service: WalletService, tx_service: TransactionService) -> None:
+
+def test_tx_view(
+    user_service: UserService,
+    wallet_service: WalletService,
+    tx_service: TransactionService,
+) -> None:
     user1 = user_service.register().id
     user2 = user_service.register().id
     w1 = wallet_service.create_wallet(user1)

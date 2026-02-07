@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Generator
 from dataclasses import dataclass
+from typing import cast
 
 from fastapi import Depends, Header, HTTPException, Request, status
 
@@ -14,10 +16,10 @@ from wallet.settings import Settings
 
 
 def get_settings(request: Request) -> Settings:
-    return request.app.state.settings
+    return cast(Settings, request.app.state.settings)
 
 
-def get_storage(settings: Settings = Depends(get_settings)) -> SqliteStorage:
+def get_storage(settings: Settings = Depends(get_settings)) -> Generator[SqliteStorage]:  # noqa: B008
     conn = connect(settings.database_path)
     try:
         setup(conn)
@@ -38,7 +40,7 @@ class AuthenticatedUser:
 
 def require_user(
     x_api_key: str | None = Header(default=None, alias="X-API-KEY"),
-    storage: SqliteStorage = Depends(get_storage),
+    storage: SqliteStorage = Depends(get_storage),  # noqa: B008
 ) -> AuthenticatedUser:
     if not x_api_key:
         raise HTTPException(

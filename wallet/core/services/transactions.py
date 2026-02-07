@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass
-from decimal import ROUND_HALF_UP, Decimal
 
 from wallet.core.domain import Transaction, Wallet, utcnow
 from wallet.core.errors import InsufficientFundsError, NotFoundError, ValidationError
@@ -13,11 +12,14 @@ from wallet.core.services.wallets import sat_to_btc
 EXTERNAL_FEE_NUM = 15
 EXTERNAL_FEE_DEN = 1000
 
+
 def ceil_div(a: int, b: int) -> int:
     return (a + b - 1) // b
 
+
 def external_fee_sat(amount_sat: int) -> int:
     return ceil_div(amount_sat * EXTERNAL_FEE_NUM, EXTERNAL_FEE_DEN)
+
 
 @dataclass
 class TransactionService:
