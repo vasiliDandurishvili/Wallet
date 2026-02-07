@@ -1,7 +1,13 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
+
+SATOSHIS_PER_BTC = 100_000_000
+
+
+def utcnow() -> datetime:
+    return datetime.now(UTC)
 
 
 @dataclass(frozen=True)
