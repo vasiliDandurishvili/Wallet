@@ -24,7 +24,7 @@ def create_wallet(
 ) -> WalletCreateResponse:
     service = WalletService(storage=storage, price_provider=price_provider)
     wallet = service.create_wallet(user.id)
-    return WalletCreateResponse(**service.wallet_view(wallet))
+    return WalletCreateResponse.model_validate(service.wallet_view(wallet))
 
 
 @router.get("/wallets/{address}", response_model=WalletGetResponse)
@@ -36,4 +36,4 @@ def get_wallet(
 ) -> WalletGetResponse:
     service = WalletService(storage=storage, price_provider=price_provider)
     wallet = service.get_wallet_owned(user.id, address)
-    return WalletGetResponse(**service.wallet_view(wallet))
+    return WalletGetResponse.model_validate(service.wallet_view(wallet))

@@ -30,7 +30,7 @@ def create_transaction(
         to_address=payload.to_address,
         amount_sat=payload.amount_sat,
     )
-    return TransactionResponse(**service.tx_view(tx))
+    return TransactionResponse.model_validate(service.tx_view(tx))
 
 
 @router.get("/transactions", response_model=list[TransactionResponse])
@@ -42,7 +42,7 @@ def list_transactions(
     service = TransactionService(storage=storage, price_provider=price_provider)
     out: list[TransactionResponse] = []
     for tx in service.list_user_transactions(user.id):
-        out.append(TransactionResponse(**service.tx_view(tx)))
+        out.append(TransactionResponse.model_validate(service.tx_view(tx)))
     return out
 
 
@@ -56,5 +56,6 @@ def list_wallet_transactions(
     service = TransactionService(storage=storage, price_provider=price_provider)
     out: list[TransactionResponse] = []
     for tx in service.list_wallet_transactions(user.id, address):
-        out.append(TransactionResponse(**service.tx_view(tx)))
+        out.append(TransactionResponse.model_validate(service.tx_view(tx)))
+
     return out
